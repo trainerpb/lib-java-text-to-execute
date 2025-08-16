@@ -80,4 +80,18 @@ public class SourceToHiddenClassUtils {
         var method = clazz.getMethod(containerMethodName);
         return method.invoke(clazz.newInstance());
     }
+
+    @SuppressWarnings("deprecation")
+    public static Runnable executeCodeInRunnable(String code, String className, String packageName, String containerMethodName) throws IllegalAccessException, NoSuchMethodException {
+        Class<?> clazz = compileAndLoadClass(code, className, packageName, containerMethodName);
+        var method = clazz.getMethod(containerMethodName);
+        return ()->{
+            try {
+                method.invoke(clazz.newInstance());
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
 }
