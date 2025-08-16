@@ -29,10 +29,11 @@ public class SourceToHiddenClassUtils {
      * @param className           The name of the class to be created.
      * @param packageName         The package name for the class.
      * @param containerMethodName The name of the method that will contain the code.
+     * @param invokerClass
      * @return The Class object representing the compiled class.
      * @throws IllegalAccessException If the class or its constructor is not accessible.
      */
-    public static Class<?> compileAndLoadClass(String code, String className, String packageName, String containerMethodName) throws IllegalAccessException {
+    public static Class<?> compileAndLoadClass(String code, String className, String packageName, String containerMethodName, Class<?> invokerClass) throws IllegalAccessException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         var sourceFile = new JavaSourceFromString(code, className, packageName, containerMethodName);
 
@@ -52,7 +53,9 @@ public class SourceToHiddenClassUtils {
             throw new IllegalStateException("Class " + className + " could not be compiled or is empty.");
         }
         System.out.println("CompilerClass.main " + classBytes.length);
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(invokerClass, MethodHandles.lookup());
+
         // Define the hidden class
         Class<?> hiddenClass = lookup.defineHiddenClass(classBytes, true).lookupClass();
 
@@ -75,15 +78,15 @@ public class SourceToHiddenClassUtils {
      * @throws InvocationTargetException  If an exception occurs while invoking the method.
      */
     @SuppressWarnings("deprecation")
-    public static Object executeCode(String code, String className, String packageName, String containerMethodName) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        Class<?> clazz = compileAndLoadClass(code, className, packageName, containerMethodName);
+    public static Object executeCode(String code, String className, String packageName, String containerMethodName, Class<?> invokerClass) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Class<?> clazz = compileAndLoadClass(code, className, packageName, containerMethodName, invokerClass);
         var method = clazz.getMethod(containerMethodName);
         return method.invoke(clazz.newInstance());
     }
 
     @SuppressWarnings("deprecation")
-    public static Runnable executeCodeInRunnable(String code, String className, String packageName, String containerMethodName) throws IllegalAccessException, NoSuchMethodException {
-        Class<?> clazz = compileAndLoadClass(code, className, packageName, containerMethodName);
+    public static Runnable executeCodeInRunnable(String code, String className, String packageName, String containerMethodName, Class<?> invokerClass) throws IllegalAccessException, NoSuchMethodException {
+        Class<?> clazz = compileAndLoadClass(code, className, packageName, containerMethodName, invokerClass);
         var method = clazz.getMethod(containerMethodName);
         return ()->{
             try {

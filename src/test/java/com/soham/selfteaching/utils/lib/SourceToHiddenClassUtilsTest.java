@@ -25,7 +25,7 @@ class SourceToHiddenClassUtilsTest {
         String packageName = getClass().getPackageName();
         String containerMethodName = "execute";
         try {
-            Class<?> loadedClass = SourceToHiddenClassUtils.compileAndLoadClass(code, className, packageName, containerMethodName);
+            Class<?> loadedClass = SourceToHiddenClassUtils.compileAndLoadClass(code, className, packageName, containerMethodName, getClass());
             assertNotNull(loadedClass, "Loaded class should not be null");
             assertEquals(getClass().getPackageName(), loadedClass.getPackageName(), "Loaded class name should match");
         } catch (IllegalAccessException e) {
@@ -51,7 +51,7 @@ class SourceToHiddenClassUtilsTest {
         String packageName = getClass().getPackageName();
         String containerMethodName = "execute";
         try {
-            SourceToHiddenClassUtils.executeCode(code, className, packageName, containerMethodName);
+            SourceToHiddenClassUtils.executeCode(code, className, packageName, containerMethodName, getClass());
             // If no exception is thrown, the test passes
         } catch (Exception e) {
             fail("Exception occurred while executing code: " + e.getMessage());
